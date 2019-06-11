@@ -1,0 +1,244 @@
+---
+title: " Indian Liver Patients"
+author: "Octavio M."
+date: "11 June 2019"
+output:
+  html_document:
+    df_print: paged
+---
+
+# **General Overview**
+![](C:/Users/IN335375/Documents/HX.jpg) 
+This project is part of the Professional Certification of HarvardX: Data Science. The main objective of this to analize one data base and use some ML. First we are going to start with a short introducction, then the given dataset will be prepared and get ready for a data analysis that will be carried out to acomplish the main goal and develop a machine learning (ML) algorithm that will help us to analize the Indian Liver Patients. After that the results will be explained and it will help to make some conclusions.
+
+## *Introduction*
+This project will examine data from liver patients especially concentrating on the relations between a list of key liver indicators, age, gender and then try to use them to predict liver disease.
+
+Here is important to know that if we detect **early signs of liver disease**, we can save a lot of lifes. We know that the models have limitations and some errors, but they help us a lot.
+
+In this project, the possibility of find early signs of liver disease with the variables we said before can help to decrease costs and help to improve the quality of life.
+
+
+## *Data*
+
+The Liver dataset is automatically downloaded
+
+
+```{r, echo = TRUE, message = FALSE, warning = FALSE, eval = TRUE}
+if(!require(tidyverse)) install.packages("tidyverse", repos = "http://cran.us.r-project.org")
+if(!require(caTools)) install.packages("caTools", repos = "http://cran.us.r-project.org")
+if(!require(pscl)) install.packages("pscl", repos = "http://cran.us.r-project.org")
+
+liver_data <- read.csv("https://archive.ics.uci.edu/ml/machine-learning-databases/00225/Indian%20Liver%20Patient%20Dataset%20(ILPD).csv", 
+    header = FALSE)
+colnames(liver_data) <- c("Age", "Sex", "Tot_Bil", "Dir_Bil", "Alkphos", "Alamine", 
+    "Aspartate", "Tot_Prot", "Albumin", "A_G_Ratio", "Disease")
+liver_data$Sex <- (ifelse(liver_data$Sex == "Male", "M", "F"))  #made shorter
+liver_data$Disease <- as.numeric(ifelse(liver_data$Disease == 2, 0, 1))  #converted to zeros and ones
+```
+
+
+# **Analysis**
+
+
+## *Data*
+
+First of all we need to know a little bit of our data set. Down are the first rows of the *Liver Data* subset.
+The subset contain eleven variables **Age**, **Total_Bilirubin**, **Gender**, **Direct_Bilirubin**, **Alkaline_Phosphotase**,**Alamine_Aminotransferase**,**Aspartate_Aminotransferase**,**Total_Protiens**,**Albumin**, **Albumin_and_Globulin_Ratio** and **Dataset**. Each row represent a single patient.
+
+```{r had, echo = FALSE}
+head(liver_data) %>%
+  print.data.frame()
+  
+```
+
+A summary of the Data: 
+
+```{r summary, echo = FALSE}
+summary(liver_data)
+```
+
+### _**Age**_
+A big part of the patiens is **in the range of age of 25 and 62 years old**.
+
+
+```{r age, echo = TRUE}
+liver_data %>%
+ggplot(aes(Age)) +
+geom_histogram(bins = 6, color = "#00AFBB") +
+xlab("Age") + 
+ylab("Frequency") +
+ggtitle("Age of patientes")
+```
+
+As we can see below, there aro more male than female, in relative terms **77.8% of Male patients are diseased**
+```{r ses, echo = TRUE}
+liver_data %>%
+group_by(Sex,Disease)%>%
+   summarise (n = n())
+```
+
+### _**Total Bilirubin**_
+Bilirubin is a prodcut of the catabolism, is one of the substance that the liver have the job to filter. Elevated levels of this can be a hint of liver disease, it cause the change of color in the skin (yellow).
+
+
+```{r Total_Bilirubin, echo = TRUE}
+liver_data %>%
+ggplot(aes(log10(Tot_Bil))) +
+geom_histogram(bins = 26, color = "#00AFBB") +
+xlab("Total Bilirubin") +
+ylab("Frequency") +
+ggtitle("Distribution of Total Bilirubin (ln)")
+```
+### _**Direct Bilirubin**_
+
+```{r Total_Bilirubi, echo = TRUE}
+liver_data %>%
+ggplot(aes(log10(Dir_Bil))) +
+geom_histogram(bins = 26, color = "#00AFBB") +
+xlab("Bilirubin") +
+ylab("Frequency") +
+ggtitle("Distribution of Direct Bilirubin (ln)")
+```
+### _**Alkaline Phosphotase**_
+With this meause we can estimate, in general, **the liver health**. **More means disease**.
+
+```{r Total_Bilrubin, echo = TRUE}
+liver_data %>%
+ggplot(aes(log10(Alkphos))) +
+geom_histogram(bins = 26, color = "#00AFBB") +
+xlab("Alkaline Phosphotase") +
+ylab("Frequency") +
+ggtitle("Distribution of Alkaline Phosphotase (ln)")
+```
+### _**Alamine Aminotransferase**_
+
+Natural component in the liver. Is tested in a liver panel.
+
+```{r Alamine Aminotransferase, echo = TRUE}
+liver_data %>%
+ggplot(aes(log10(Alamine))) +
+geom_histogram(bins = 26, color = "#00AFBB") +
+xlab("Alamine Aminotransferase") +
+ylab("Frequency") +
+ggtitle("Distribution of Alamine Aminotransferase (ln)")
+```
+### _**Aspartate Aminotransferase**_
+
+Natural component in the liver. Is tested in a liver panel.
+
+```{r Aspartate Aminotransferase, echo = TRUE}
+liver_data %>%
+ggplot(aes(log10(Aspartate))) +
+geom_histogram(bins = 26, color = "#00AFBB") +
+xlab("Aspartate Aminotransferase") +
+ylab("Frequency") +
+ggtitle("Distribution of Aspartate Aminotransferase (ln)")
+```
+### _**Total Proteins**_
+
+Is a measure of globulin and albumin combined
+
+```{r Total Proteins, echo = TRUE}
+liver_data %>%
+ggplot(aes(log10(Tot_Prot))) +
+geom_histogram(bins = 26, color = "#00AFBB") +
+xlab("Total Proteins") +
+ylab("Frequency") +
+ggtitle("Distribution of Total Proteins (ln)")
+```
+### _**Albumin**_
+
+Is a protein  contained in the blood that gives structure to the vascular system.
+
+```{r Albumin, echo = TRUE}
+liver_data %>%
+ggplot(aes((Albumin))) +
+geom_histogram(bins = 26, color = "#00AFBB") +
+xlab("Albumin") +
+ylab("Frequency") +
+ggtitle("Distribution of Albumin")
+```
+### _**Albumin-Globulin Ratio**_
+
+Is a general index of disesases.
+
+```{r Albmin, echo = TRUE}
+liver_data %>%
+ggplot(aes(A_G_Ratio)) +
+geom_histogram(bins = 26, color = "#00AFBB") +
+xlab("Albumin") +
+ylab("Frequency") +
+ggtitle("Distribution of Albumin-Globulin Ratio")
+```
+
+## *Model Approach*
+
+In this project we want to see if the Logistic Regression can be used on this data set to help us predict liver disease.
+```{r head1, echo = TRUE}
+set.seed(455)  
+liver_data$Splits <- sample.split(liver_data, SplitRatio = 0.7)  #Index
+liver_data <- liver_data %>% mutate_each(funs(log), -Age, -Sex, -Albumin, -A_G_Ratio, 
+    -Disease, -Splits)
+train <- liver_data[liver_data$Splits == TRUE, ]  #training index
+test <- liver_data[liver_data$Splits == FALSE, ]  #test indexes
+  
+```
+
+### _**Summary of training**_
+```{r head2, echo = TRUE}
+summary(train)
+
+  
+```
+
+### _**Logistic Model**_
+
+```{r head3, echo = TRUE}
+fit <- glm(Disease ~ Age + Sex + Tot_Bil + Dir_Bil + Alkphos + Alamine + Aspartate + 
+    Tot_Prot + Albumin + A_G_Ratio, data = train, family = binomial(link = "logit"))
+```
+
+Coefficients:
+```{r head4, echo = TRUE}
+summary(fit)
+```
+
+
+Pseudo R-Square and Log-Likelihoods:
+Usign the McFadden **R2** as a measure, the model explains just 22.5% of the disease classification.
+```{r head5, echo = TRUE}
+pR2(fit)
+```
+
+Now we will use the Coefficient of Discrimination 
+
+```{r head6, echo = TRUE}
+
+Test_Predictions <- data.frame(Probability = predict(fit, test, type = "response"))
+Test_Predictions$Prediction <- ifelse(Test_Predictions > 0.5, 1, 0)
+Test_Predictions$Disease <- test$Disease
+accuracy <- mean(Test_Predictions$Disease == Test_Predictions$Prediction, na.rm = TRUE)
+disease <- Test_Predictions$Probability[which(Test_Predictions$Disease == 1)]
+non <- Test_Predictions$Probability[which(Test_Predictions$Disease == 0)]
+Coef_Desc <- mean(disease, na.rm = TRUE) - mean(non, na.rm = TRUE)
+print(accuracy)
+```
+The Coefficient of Discrimination is= 
+```{r head7, echo = TRUE}
+print(Coef_Desc)
+```
+
+The accuracy of our model is= 
+```{r head8, echo = TRUE}
+print(accuracy)
+```
+The model accuracy tell us the time our model made the right prediction, meaning taht the **prediction was right 69% of the times**.
+
+
+# **Final considerations and further discussion**
+
+With the construction of the Pseudo R values (22.5%) that is really low for a predictor, i consider it will not help us at all to predict the disease and only will be a waste of time use it .
+But given it high accuracy of 69%, we can add more and more variables and values to the data set and could be use in a further test for the liver disease.
+
+**This model can be use for early detection, not for diagnostic**. 
